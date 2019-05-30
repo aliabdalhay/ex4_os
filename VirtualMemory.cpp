@@ -3,28 +3,29 @@
 #include <iostream>
 #include <stdlib.h>
 #include <algorithm>
+#include <cmath>
+#include <bitset>
+#include <map>
+#include <vector>
 
 
-
-
-#define TWO 2;
+#define TWO 2
 
 void clearTable(uint64_t frameIndex) {
     for (uint64_t i = 0; i < PAGE_SIZE; ++i) {
         PMwrite(frameIndex * PAGE_SIZE + i, 0);
     }
 }
-//Todo
-typedef <uint64_t page, uint64_t offSet> struct pageOffsetPair;
+typedef std::pair<std::string , std::string>  pageOffsetPair;
 /*
- * this pair is binary of an address page and pffset
+ * <page, offset>
+ * this pair is binary of an address page and offset
  */
- uint64_t log2(uint64_t number)
+ int log2(int number)
  {
- 	return ( log(number) / log(TWO) );
+ 	return static_cast<int>(log(number) / log(TWO));
  }
 
-//todo
 uint64_t offSetSize(uint64_t pageSize);
 /*
  * log(pagesie)
@@ -36,17 +37,15 @@ uint64_t pageSize(uint64_t virtualSize, uint64_t ofsetsize);
  * log virtualsize - ofsetsize
  * return the number of digits for the oage size
  */
-//Todo
 
-uint64_t addressToBinary(const uint64_t& virtualAddress);
+std::string addressToBinary(const uint64_t& virtualAddress);
 /*
  * this would git an integer address and return the binary equivalent
  * number of digits in the binary should be equal to log (VM Size)
  */
 
-//Todo
 
-pageOffset translateToPage(const uint64_t& virtualAddress);
+pageOffsetPair translateToPage(const uint64_t& virtualAddress);
 /*
  * gets a virtual addressa dn return a pair which is a binary represntation of teh adrees
  * devided to the page and offset
@@ -66,8 +65,9 @@ int64_t nextUnusedFram();
 //Todo
 
 //probably create a map that contains all the pages that were read or written ....
-uint64_t minimalCyclicDistance(uint64_t pageToFill);
+uint64_t  maximalCyclicDistance(uint64_t pageToFill,  uint64_t allUsedPages[VIRTUAL_MEMORY_SIZE]);
 /*
+ * map < key = page umbers, value =  physical address>  every thing we write or read to/ from
  * return the page number with the inimal cyclic distance from the pageToFill
  */
 
@@ -82,7 +82,7 @@ uint64_t toPhysical(pageOffsetPair pair);
 
 int evict(uint64_t newAddress);
 /*
- * if physical memory full get frame with max cyclic distance then deletes that fram delete link
+ * if physical memory full get frame with max cyclic distance then deletes that frame delete link
  * to it and creates it with empty valued to where i need to add it
  */
 
@@ -94,10 +94,54 @@ void VMinitialize() {
     clearTable(0);
 }
 
-uint64_t addressToBinary(const uint64_t& virtualAddress)
+std::string addressToBinary(const uint64_t& virtualAddress)
 {
-    std::string binary = std::bitset<VIRTUAL_ADDRESS_WIDTH>(virtualAddress).to_string(); //to binary
+//	int virtualSize = log2((int)VIRTUAL_MEMORY_SIZE);
+	std::string binary = std::bitset<VIRTUAL_ADDRESS_WIDTH>(virtualAddress).to_string();//to binary
     return binary;
+}
+
+uint64_t offSetSize(uint64_t pageSize)
+{
+	return (uint64_t) log2((int)pageSize);
+}
+
+uint64_t pageSize(uint64_t virtualSize, uint64_t ofsetsize)
+{
+	return (uint64_t) log2((int)virtualSize) - ofsetsize;
+}
+
+pageOffsetPair translateToPage(const uint64_t &virtualAddress)
+{
+	std::string binary = addressToBinary(virtualAddress);
+	std::string offset = binary.substr(VIRTUAL_ADDRESS_WIDTH - OFFSET_WIDTH, OFFSET_WIDTH);
+	std::string page = binary.substr(0, VIRTUAL_ADDRESS_WIDTH - OFFSET_WIDTH);
+	pageOffsetPair pair = {page, offset};
+	return pair ;
+}
+
+ uint64_t min(uint64_t first , uint64_t second)
+{
+	return first < second? first: second;
+}
+//todo check size and stuff about array
+uint64_t maximalCyclicDistance(int pageToFill, int allUsedPages[VIRTUAL_MEMORY_SIZE] )
+{
+	int maxIndex = 0;
+	uint64_t max = 0;
+	for (int i =0 ; i < VIRTUAL_MEMORY_SIZE; i++)
+	{
+		uint64_t minmal = min(static_cast<uint64_t>(abs(pageToFill - allUsedPages[i])),
+							  static_cast<uint64_t>(abs(VIRTUAL_MEMORY_SIZE -
+														(pageToFill- allUsedPages[i]))));
+
+		if ( minmal > max)
+		{
+			max = minmal;
+			maxIndex = i;
+		}
+	}
+	return static_cast<uint64_t>(maxIndex);
 }
 
 int VMread(uint64_t virtualAddress, word_t* value) {
