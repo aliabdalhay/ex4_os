@@ -1,6 +1,7 @@
 #include "VirtualMemory.h"
 #include "PhysicalMemory.h"
 
+#define TWO 2;
 
 void clearTable(uint64_t frameIndex) {
     for (uint64_t i = 0; i < PAGE_SIZE; ++i) {
@@ -12,7 +13,23 @@ typedef <uint64_t page, uint64_t offSet> struct pageOffsetPair;
 /*
  * this pair is binary of an address page and pffset
  */
+ uint64_t log2(uint64_t number)
+ {
+ 	return ( log(number) / log(TWO) );
+ }
 
+//todo
+uint64_t offSetSize(uint64_t pageSize);
+/*
+ * log(pagesie)
+ * return the number of digits needed fro the ofset
+ */
+
+uint64_t pageSize(uint64_t virtualSize, uint64_t ofsetsize);
+/*
+ * log virtualsize - ofsetsize
+ * return the number of digits for the oage size
+ */
 //Todo
 
 uint64_t addressToBinary(const uint64_t& virtualAddress);
