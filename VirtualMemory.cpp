@@ -1,5 +1,11 @@
 #include "VirtualMemory.h"
 #include "PhysicalMemory.h"
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
+
+
+
 
 #define TWO 2;
 
