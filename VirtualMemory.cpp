@@ -76,7 +76,7 @@ uint64_t toPhysical(pageOffsetPair pair);
 
 int evict(uint64_t newAddress);
 /*
- * if physical memory full get fram with max cyclic distance then deletes that fram delete link
+ * if physical memory full get frame with max cyclic distance then deletes that fram delete link
  * to it and creates it with empty valued to where i need to add it
  */
 
