@@ -1,5 +1,11 @@
 #include "VirtualMemory.h"
 #include "PhysicalMemory.h"
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
+
+
+
 
 #define TWO 2;
 
@@ -88,6 +94,11 @@ void VMinitialize() {
     clearTable(0);
 }
 
+uint64_t addressToBinary(const uint64_t& virtualAddress)
+{
+    std::string binary = std::bitset<VIRTUAL_ADDRESS_WIDTH>(virtualAddress).to_string(); //to binary
+    return binary;
+}
 
 int VMread(uint64_t virtualAddress, word_t* value) {
 	//Todo
