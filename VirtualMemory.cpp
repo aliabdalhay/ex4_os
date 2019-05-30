@@ -8,7 +8,7 @@ void clearTable(uint64_t frameIndex) {
     }
 }
 //Todo
-typedef std::pair <uint64_t page, uint64_t offSet> pageOffset;
+typedef <uint64_t page, uint64_t offSet> struct pageOffsetPair;
 /*
  * this pair is binary of an address page and pffset
  */
