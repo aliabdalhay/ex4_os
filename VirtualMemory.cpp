@@ -177,8 +177,14 @@ void deleteFrame(uint64_t frameToDelete, uint64_t numberOfPage, uint64_t *allUse
 }
 
 void DFS(pageOffsetPair pair, uint64_t frame, int currentDepth, uint64_t* allUsedPages)
-{
-	if ( currentDepth == TABLES_DEPTH)
+{//todo  probably change the allusedpages and make alist of all empty frames unused ?
+	/*
+	 * this function only goes to what already is in the tree  if
+	 * thus if the value is not zero then it has a "child" if all children is zero and it is not the frame we came from
+	 * then it is unused  and we can use it but if it is not zero and not after finish depth aka in VM then
+	 * we go to that child
+	 */
+	if ( currentDepth == TABLES_DEPTH)// got to the VM beyond the made up tree
 	{
 		//todo
 		return;
@@ -191,7 +197,12 @@ void DFS(pageOffsetPair pair, uint64_t frame, int currentDepth, uint64_t* allUse
 		PMread(frame * PAGE_SIZE + currentDepth, &value);
 		if( value != 0 )
 		{
+			currentDepth++;
+			DFS(pair, value, currentDepth, allUsedPages );
 			
+		} else
+		{
+			counter ++;
 		}
 	}
 
