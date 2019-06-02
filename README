@@ -1,6 +1,6 @@
-login1, login2
-Student Name1 (ID1), Student Name2 (ID2)
-EX: 1
+Sin_een, login2
+Sineen (200904803), Student Name2 (ID2)
+EX: 4
 
 FILES:
 myfile.c -- a file with some code
