@@ -10,6 +10,7 @@
 
 
 #define TWO 2
+#define ZERO 0
 
 void clearTable(uint64_t frameIndex) {
     for (uint64_t i = 0; i < PAGE_SIZE; ++i) {
@@ -26,10 +27,11 @@ typedef std::pair<std::string , std::string>  pageOffsetPair;
  	return static_cast<int>(log(number) / log(TWO));
  }
 
+
 uint64_t offSetSize(uint64_t pageSize);
 /*
  * log(pagesie)
- * return the number of digits needed fro the ofset
+ * return the number of digits needed for the ofset
  */
 
 uint64_t pageSize(uint64_t virtualSize, uint64_t ofsetsize);
@@ -51,21 +53,25 @@ pageOffsetPair translateToPage(const uint64_t& virtualAddress);
  * devided to the page and offset
  */
 
-//todo
-// maybe give it root ?  maybe create a DFS function alone
-int64_t nextUnusedFram();
+void DFS(std::string page, uint64_t frame, int currentDepth);
 /*
+ *
+ */
+
+
+uint64_t nextUnusedFram(int currentFrame);
+/*void DFS(std::string page, uint64_t frame, int currentDepth)
  * traversing over the tress, DFS  and returns the umber of fram that was not used
  * retrunz zero if the physical memory was full aka all frames were used
- * a positave number of the fram if that fram was never used
- * a negative number of the fram if that fram was used yet empty ( have to delete its parent
+ * a positave number of the frame if that frame was never used
+ * a negative number of the frame if that frame was used yet empty ( have to delete its parent
  * pointing at it)
  */
 
 //Todo
 
 //probably create a map that contains all the pages that were read or written ....
-uint64_t  maximalCyclicDistance(uint64_t pageToFill,  uint64_t allUsedPages[VIRTUAL_MEMORY_SIZE]);
+uint64_t  maximalCyclicDistance(uint64_t pageToFill,  uint64_t allUsedPages[]);
 /*
  * map < key = page umbers, value =  physical address>  every thing we write or read to/ from
  * return the page number with the inimal cyclic distance from the pageToFill
@@ -75,20 +81,23 @@ uint64_t  maximalCyclicDistance(uint64_t pageToFill,  uint64_t allUsedPages[VIRT
 //todo
 uint64_t toPhysical(pageOffsetPair pair);
 /*
- * maps page fro pair to frame then connects it to ofset adn returns that value which is teh
+ * maps page for pair to frame then connects it to offset and returns that value which is the
  * physical address
  */
 
 
-int evict(uint64_t newAddress);
+int evict(uint64_t newAddress, uint64_t* allUsedPages[]);
 /*
  * if physical memory full get frame with max cyclic distance then deletes that frame delete link
  * to it and creates it with empty valued to where i need to add it
  */
 
-int deleteFrame();
+void deleteFrame(int frameToDelete, uint64_t numberOfPage, uint64_t allUsedPages[]);
 
-int createFrame();
+void createFrame(uint64_t frameToCreate, uint64_t numberOfPage, uint64_t allUsedPages[]);
+/*
+ * initlized teh frame ( puts zero in the physical memory) should be added to all usedpages
+ */
 
 void VMinitialize() {
     clearTable(0);
@@ -101,15 +110,15 @@ std::string addressToBinary(const uint64_t& virtualAddress)
     return binary;
 }
 
-uint64_t offSetSize(uint64_t pageSize)
-{
-	return (uint64_t) log2((int)pageSize);
-}
-
-uint64_t pageSize(uint64_t virtualSize, uint64_t ofsetsize)
-{
-	return (uint64_t) log2((int)virtualSize) - ofsetsize;
-}
+//uint64_t offSetSize(uint64_t pageSize)
+//{
+//	return (uint64_t) log2((int)pageSize);
+//}
+//
+//uint64_t pageSize(uint64_t virtualSize, uint64_t ofsetsize)
+//{
+//	return (uint64_t) log2((int)virtualSize) - ofsetsize;
+//}
 
 pageOffsetPair translateToPage(const uint64_t &virtualAddress)
 {
@@ -120,28 +129,132 @@ pageOffsetPair translateToPage(const uint64_t &virtualAddress)
 	return pair ;
 }
 
- uint64_t min(uint64_t first , uint64_t second)
+uint64_t nextUnusedFram(uint64_t currentFrame)
+{
+//	for( uint64_t f = 0; f < NUM_FRAMES ; f++)
+//	{
+//		uint64_t counter = 0 ;
+//		for( uint64_t p = 0 ; p < PAGE_SIZE; p++)
+//		{
+//			word_t  read;
+//			PMread(f * PAGE_SIZE +p, &read); // check if page in teh PM has a value
+//			if( read != 0)
+//			{
+//				break; // has value this frame is used
+//			}
+//			else {
+//				counter ++;
+//			}
+//		}
+//		if ( counter == PAGE_SIZE && f != currentFrame)
+//		{
+//			return f;
+//		}
+//	}
+//	return 0; // physical memory is full  need to evict
+}
+
+void createFrame(uint64_t frameToCreate,uint64_t numberOfPage, uint64_t *allUsedPages)
+{
+	allUsedPages[numberOfPage] = frameToCreate;
+	for(int i = 0; i < PAGE_SIZE; i++)
+	{
+		PMwrite(frameToCreate * PAGE_SIZE + i, ZERO);
+	}
+}
+
+void deleteFrame(uint64_t frameToDelete, uint64_t numberOfPage, uint64_t *allUsedPages)
+{
+	allUsedPages[numberOfPage] = ZERO;
+	for(int i = 0; i < PAGE_SIZE; i++)
+	{
+		/*
+		 * todo check what exactly teh evect does does it have all the frame,
+		 * either with the for an delete each one of teh physica memory or no for at all
+		 */
+		PMevict(frameToDelete, numberOfPage);
+	}
+}
+
+void DFS(pageOffsetPair pair, uint64_t frame, int currentDepth, uint64_t* allUsedPages)
+{
+	auto pageNumber = static_cast<uint64_t>(std::stoi(pair.first, nullptr, 2));
+	if(currentDepth == TABLES_DEPTH)
+	{
+		//todo write whats in vm to PM by the offset
+		//we got to the page now we fill it
+		for( int i = 0; i< PAGE_SIZE ; i++)
+		{
+			uint64_t unused = nextUnusedFram(frame);
+			PMrestore(unused, pageNumber);
+			std::string newAddressBin = addressToBinary(unused) + pair.second;
+			auto newAddress = static_cast<uint64_t>(std::stoi(newAddressBin, nullptr, 2));
+
+
+
+			std::string vmaddress = (pair.first + pair.second);
+			int vmAdd = std::stoi(vmaddress, nullptr, 2);
+//			word_t word;
+//			VMread(static_cast<uint64_t>(vmAddress), &word );
+//			PMwrite(fram* PAGE_SIZE + i + pair.second, &word);
+
+		}
+	}
+	else
+	{
+		char pageStep =  pair.first[currentDepth];
+		int index = (int)(pageStep);
+		int word;
+		PMread(frame * PAGE_SIZE + index, &word);
+		if (word!=0)
+		{ // then there is aframe in the  next lyer in tree where i need to go
+			DFS(pair, (uint64_t) word, currentDepth+1 , allUsedPages);
+		}
+		else
+		{ // no frame in the tree where ineed to go
+			uint64_t unused = nextUnusedFram(frame);
+			if (unused != 0)
+			{// then we have an unused frame
+				createFrame(unused, pageNumber, allUsedPages );
+				PMwrite( frame* PAGE_SIZE + index,(word_t) unused);
+				DFS(pair, unused, currentDepth + 1, allUsedPages );
+
+			}
+			else{
+				//evict();
+			}
+		}
+
+	}
+
+}
+
+uint64_t min(uint64_t first , uint64_t second)
 {
 	return first < second? first: second;
 }
 //todo check size and stuff about array
-uint64_t maximalCyclicDistance(int pageToFill, int allUsedPages[VIRTUAL_MEMORY_SIZE] )
+uint64_t maximalCyclicDistance(int pageToFill, const int allUsedPages[] )
 {
-	int maxIndex = 0;
+	int maxDistancePage = 0;
 	uint64_t max = 0;
-	for (int i =0 ; i < VIRTUAL_MEMORY_SIZE; i++)
+	for (int i = 0 ; i < NUM_PAGES; i++)
 	{
-		uint64_t minmal = min(static_cast<uint64_t>(abs(pageToFill - allUsedPages[i])),
-							  static_cast<uint64_t>(abs(VIRTUAL_MEMORY_SIZE -
-														(pageToFill- allUsedPages[i]))));
-
-		if ( minmal > max)
+		if (allUsedPages[i] != ZERO)
 		{
-			max = minmal;
-			maxIndex = i;
+			uint64_t minmal = min(static_cast<uint64_t>(abs(pageToFill - i)),
+								  static_cast<uint64_t>(abs(NUM_PAGES -
+															(pageToFill- i))));
+
+			if ( minmal > max)
+			{
+				max = minmal;
+				maxDistancePage = i;
+			}
 		}
+
 	}
-	return static_cast<uint64_t>(maxIndex);
+	return static_cast<uint64_t>(maxDistancePage);
 }
 
 int VMread(uint64_t virtualAddress, word_t* value) {
