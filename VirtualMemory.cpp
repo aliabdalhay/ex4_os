@@ -131,27 +131,27 @@ pageOffsetPair translateToPage(const uint64_t &virtualAddress)
 
 uint64_t nextUnusedFram(uint64_t currentFrame)
 {
-//	for( uint64_t f = 0; f < NUM_FRAMES ; f++)
-//	{
-//		uint64_t counter = 0 ;
-//		for( uint64_t p = 0 ; p < PAGE_SIZE; p++)
-//		{
-//			word_t  read;
-//			PMread(f * PAGE_SIZE +p, &read); // check if page in teh PM has a value
-//			if( read != 0)
-//			{
-//				break; // has value this frame is used
-//			}
-//			else {
-//				counter ++;
-//			}
-//		}
-//		if ( counter == PAGE_SIZE && f != currentFrame)
-//		{
-//			return f;
-//		}
-//	}
-//	return 0; // physical memory is full  need to evict
+	for( uint64_t f = 0; f < NUM_FRAMES ; f++)
+	{
+		uint64_t counter = 0 ;
+		for( uint64_t p = 0 ; p < PAGE_SIZE; p++)
+		{
+			word_t  read;
+			PMread(f * PAGE_SIZE +p, &read); // check if page in teh PM has a value
+			if( read != 0)
+			{
+				break; // has value this frame is used
+			}
+			else {
+				counter ++;
+			}
+		}
+		if ( counter == PAGE_SIZE && f != currentFrame)
+		{
+			return f;
+		}
+	}
+	return 0; // physical memory is full  need to evict
 }
 
 void createFrame(uint64_t frameToCreate,uint64_t numberOfPage, uint64_t *allUsedPages)
@@ -178,54 +178,71 @@ void deleteFrame(uint64_t frameToDelete, uint64_t numberOfPage, uint64_t *allUse
 
 void DFS(pageOffsetPair pair, uint64_t frame, int currentDepth, uint64_t* allUsedPages)
 {
-	auto pageNumber = static_cast<uint64_t>(std::stoi(pair.first, nullptr, 2));
-	if(currentDepth == TABLES_DEPTH)
+	if ( currentDepth == TABLES_DEPTH)
 	{
-		//todo write whats in vm to PM by the offset
-		//we got to the page now we fill it
-		for( int i = 0; i< PAGE_SIZE ; i++)
+		//todo
+		return;
+	}
+	word_t value;
+	uint64_t counter = 0;
+
+	for(uint64_t p = 0; p < PAGE_SIZE; p++)
+	{
+		PMread(frame * PAGE_SIZE + currentDepth, &value);
+		if( value != 0 )
 		{
-			uint64_t unused = nextUnusedFram(frame);
-			PMrestore(unused, pageNumber);
-			std::string newAddressBin = addressToBinary(unused) + pair.second;
-			auto newAddress = static_cast<uint64_t>(std::stoi(newAddressBin, nullptr, 2));
-
-
-
-			std::string vmaddress = (pair.first + pair.second);
-			int vmAdd = std::stoi(vmaddress, nullptr, 2);
-//			word_t word;
-//			VMread(static_cast<uint64_t>(vmAddress), &word );
-//			PMwrite(fram* PAGE_SIZE + i + pair.second, &word);
-
+			
 		}
 	}
-	else
-	{
-		char pageStep =  pair.first[currentDepth];
-		int index = (int)(pageStep);
-		int word;
-		PMread(frame * PAGE_SIZE + index, &word);
-		if (word!=0)
-		{ // then there is aframe in the  next lyer in tree where i need to go
-			DFS(pair, (uint64_t) word, currentDepth+1 , allUsedPages);
-		}
-		else
-		{ // no frame in the tree where ineed to go
-			uint64_t unused = nextUnusedFram(frame);
-			if (unused != 0)
-			{// then we have an unused frame
-				createFrame(unused, pageNumber, allUsedPages );
-				PMwrite( frame* PAGE_SIZE + index,(word_t) unused);
-				DFS(pair, unused, currentDepth + 1, allUsedPages );
 
-			}
-			else{
-				//evict();
-			}
-		}
-
-	}
+//	auto pageNumber = static_cast<uint64_t>(std::stoi(pair.first, nullptr, 2));
+//	if(currentDepth == TABLES_DEPTH)
+//	{
+//		//todo write whats in vm to PM by the offset
+//		//we got to the page now we fill it
+//		for( int i = 0; i< PAGE_SIZE ; i++)
+//		{
+//			uint64_t unused = nextUnusedFram(frame);
+//			PMrestore(unused, pageNumber);
+//			std::string newAddressBin = addressToBinary(unused) + pair.second;
+//			auto newAddress = static_cast<uint64_t>(std::stoi(newAddressBin, nullptr, 2));
+//
+//
+//
+//			std::string vmaddress = (pair.first + pair.second);
+//			int vmAdd = std::stoi(vmaddress, nullptr, 2);
+////			word_t word;
+////			VMread(static_cast<uint64_t>(vmAddress), &word );
+////			PMwrite(fram* PAGE_SIZE + i + pair.second, &word);
+//
+//		}
+//	}
+//	else
+//	{
+//		char pageStep =  pair.first[currentDepth];
+//		int index = (int)(pageStep);
+//		int word;
+//		PMread(frame * PAGE_SIZE + index, &word);
+//		if (word!=0)
+//		{ // then there is aframe in the  next lyer in tree where i need to go
+//			DFS(pair, (uint64_t) word, currentDepth+1 , allUsedPages);
+//		}
+//		else
+//		{ // no frame in the tree where ineed to go
+//			uint64_t unused = nextUnusedFram(frame);
+//			if (unused != 0)
+//			{// then we have an unused frame
+//				createFrame(unused, pageNumber, allUsedPages );
+//				PMwrite( frame* PAGE_SIZE + index,(word_t) unused);
+//				DFS(pair, unused, currentDepth + 1, allUsedPages );
+//
+//			}
+//			else{
+//				//evict();
+//			}
+//		}
+//
+//	}
 
 }
 
