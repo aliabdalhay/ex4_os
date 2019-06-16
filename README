@@ -1,22 +1,14 @@
-Sin_een, login2
-Sineen (200904803), Student Name2 (ID2)
+iamaliabdelhai, Sin_een
+Ali Abd Alhay (207652520), Sineen (200904803)
 EX: 4
 
 FILES:
-myfile.c -- a file with some code
-myfile.h -- a file with some headers
+VirtualMemory.cpp -- the implementation of the virtual memory functions.
+README -- this file.
+Makefile -- a make file for this exercise.
 
 REMARKS:
-These are some remarks that
-I want the graders to know
-about this submission.
+
 
 ANSWERS:
 
-Q1:
-Here are answers to theoreical questions
-if there were such questions in the exercise.
-
-Q2:
-Here are answers to theoreical questions
-if there were such questions in the exercise.
