@@ -10,6 +10,83 @@
 using namespace std;
 
 
+/////////////////// Declaration of Functions /////////////////////////////////////////////////////
+
+
+void clearTable(uint64_t frameIndex);
+
+bitset<VIRTUAL_ADDRESS_WIDTH> toBinary(const uint64_t& virtualAddress);
+
+bitset<OFFSET_WIDTH> toBinary2(const uint64_t& virtualAddress);
+
+std::string addressToBinary(const uint64_t& virtualAddress);
+
+std::string addressToBinary2(const uint64_t& virtualAddress);
+
+/*
+ * <page, offset>
+ * this pair is binary of an address page and offset
+ */
+typedef std::pair<std::string , std::string>  pageOffsetPair;
+
+
+uint64_t min(uint64_t first , uint64_t second);
+
+uint64_t maximalCyclicDistance(uint64_t pageToFill, uint64_t curr_page);
+
+string sub_string(const string &str, unsigned long start, unsigned long length);
+
+uint64_t convertBinaryToDecimal(uint64_t n);
+
+uint64_t strToint(const std::string &page);
+
+pageOffsetPair translateToPage(const uint64_t &virtualAddress);
+
+void read(unsigned int i, uint64_t frame, word_t &val);
+
+void write(unsigned int i, uint64_t frame);
+
+void evict(uint64_t value, uint64_t max_int);
+
+void restore(uint64_t current_frame, uint64_t pageToFill);
+
+void Dfs_travel(uint64_t frame, std::string &root, uint64_t pageToFill, double max, std::string &maxString);
+
+void DFS(int depth, uint64_t frame, std::string root, std::string &maxString, uint64_t pageToFill);
+
+word_t nextUnusedFrame(uint64_t currentFrame);
+
+/**
+ * Remove the link from the parent of the given frameIndx to it.
+// */
+void remove_link(int depth, uint64_t frame, uint64_t value);
+
+word_t read_evict_write(unsigned int idx, uint64_t nextFrame, std::string &maxString);
+
+uint64_t index_substr(uint64_t i, std::string &maxString);
+
+uint64_t helpToEvict(unsigned int i, string &max_str, uint64_t nextFrame);
+
+word_t evict(std::string max_str, uint64_t page);
+
+word_t helpToRemove(word_t current_frame, std::string &page, int depth, uint64_t index);
+
+uint64_t translate(string &page, string offset, word_t current_frame);
+
+uint64_t toPhysical(uint64_t virtualAddress);
+
+void VMinitialize();
+
+int VMread(uint64_t virtualAddress, word_t* value);
+
+int VMwrite(uint64_t virtualAddress, word_t value);
+
+
+
+
+//////////////////////////////// Implementation of Functions /////////////////////////////////////////////////
+
+
 
 void clearTable(uint64_t frameIndex)
 {
@@ -47,20 +124,10 @@ std::string addressToBinary2(const uint64_t& virtualAddress)
 }
 
 
-/*
- * <page, offset>
- * this pair is binary of an address page and offset
- */
-typedef std::pair<std::string , std::string>  pageOffsetPair;
-
-
-
-
 uint64_t min(uint64_t first , uint64_t second)
 {
     return first <= second ? first : second;
 }
-
 
 
 uint64_t maximalCyclicDistance(uint64_t pageToFill, uint64_t curr_page) {
@@ -180,12 +247,11 @@ void DFS(int depth, uint64_t frame, std::string root, std::string &maxString, ui
             }
         }
     }
-
 }
 
 
 
-word_t nextUnusedFrame(word_t currentFrame)
+word_t nextUnusedFrame(uint64_t currentFrame)
 {
     for(uint64_t f = 0; f < NUM_FRAMES ; f++)
     {
@@ -212,10 +278,6 @@ word_t nextUnusedFrame(word_t currentFrame)
 
 
 
-
-/**
- * Remove the link from the parent of the given frameIndx to it.
-// */
 void remove_link(int depth, uint64_t frame, uint64_t value)
 {
     if (depth > TABLES_DEPTH) {
@@ -236,9 +298,6 @@ void remove_link(int depth, uint64_t frame, uint64_t value)
 }
 
 
-
-
-
 word_t read_evict_write(unsigned int idx, uint64_t nextFrame, std::string &maxString)
 {
     word_t value;
@@ -248,7 +307,6 @@ word_t read_evict_write(unsigned int idx, uint64_t nextFrame, std::string &maxSt
     clearTable(value);
     write(idx, nextFrame);
     return value;
-
 
 }
 
@@ -317,7 +375,6 @@ uint64_t translate(string &page, string offset, word_t current_frame)
 
 
 uint64_t toPhysical(uint64_t virtualAddress){
-
     pageOffsetPair pair = translateToPage(virtualAddress);
     word_t current_frame = 0;
     unsigned int i = 0;
@@ -338,11 +395,9 @@ uint64_t toPhysical(uint64_t virtualAddress){
         else
         {
             current_frame = helpToRemove(current_frame, page, depth, index);
-
         }
         i += OFFSET_WIDTH;
     }
-
     uint64_t result = translate(page, offset, current_frame);
     return result;
 }
